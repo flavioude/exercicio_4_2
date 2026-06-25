@@ -6,17 +6,27 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 
-def _payload(resultado):
-    """Extrai o dado da tool, tolerando variacoes entre versoes do SDK MCP."""
-    # SDKs recentes expoem o objeto ja desserializado em structuredContent.
+def _como_objeto(resultado) -> dict:
+    """Retorno de tool que e um objeto unico (ex.: criar_tarefa)."""
     structured = getattr(resultado, "structuredContent", None)
     if isinstance(structured, dict):
-        # FastMCP embrulha retornos de lista em {"result": [...]}.
+        # FastMCP embrulha retornos nao-dict em {"result": ...}.
         if set(structured.keys()) == {"result"}:
             return structured["result"]
         return structured
-    # Fallback: o conteudo textual carrega o JSON serializado.
     return json.loads(resultado.content[0].text)
+
+
+def _como_lista(resultado) -> list:
+    """Retorno de tool que e uma lista (ex.: listar_tarefas).
+
+    Em algumas versoes do SDK cada item da lista vira um content block
+    separado, entao juntamos todos os blocks em uma unica lista.
+    """
+    structured = getattr(resultado, "structuredContent", None)
+    if isinstance(structured, dict) and set(structured.keys()) == {"result"}:
+        return structured["result"]
+    return [json.loads(bloco.text) for bloco in resultado.content]
 
 
 async def main() -> dict:
@@ -33,8 +43,8 @@ async def main() -> dict:
 
             return {
                 "tools": nomes,
-                "criar_resultado": _payload(criar),
-                "listar_resultado": _payload(listar),
+                "criar_resultado": _como_objeto(criar),
+                "listar_resultado": _como_lista(listar),
             }
 
 
