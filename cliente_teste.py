@@ -6,6 +6,19 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 
+def _payload(resultado):
+    """Extrai o dado da tool, tolerando variacoes entre versoes do SDK MCP."""
+    # SDKs recentes expoem o objeto ja desserializado em structuredContent.
+    structured = getattr(resultado, "structuredContent", None)
+    if isinstance(structured, dict):
+        # FastMCP embrulha retornos de lista em {"result": [...]}.
+        if set(structured.keys()) == {"result"}:
+            return structured["result"]
+        return structured
+    # Fallback: o conteudo textual carrega o JSON serializado.
+    return json.loads(resultado.content[0].text)
+
+
 async def main() -> dict:
     params = StdioServerParameters(command="python", args=["servidor_mcp.py"])
     async with stdio_client(params) as (read, write):
@@ -20,8 +33,8 @@ async def main() -> dict:
 
             return {
                 "tools": nomes,
-                "criar_resultado": json.loads(criar.content[0].text),
-                "listar_resultado": json.loads(listar.content[0].text),
+                "criar_resultado": _payload(criar),
+                "listar_resultado": _payload(listar),
             }
 
 
