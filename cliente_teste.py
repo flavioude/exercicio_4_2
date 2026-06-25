@@ -1,9 +1,15 @@
 # cliente_teste.py
 import asyncio
 import json
+import os
+import sys
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+
+# Caminho absoluto do servidor (independe do diretorio de trabalho) e o
+# MESMO interpretador deste cliente (evita 'python' do PATH sem o SDK mcp).
+SERVIDOR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "servidor_mcp.py")
 
 
 def _como_objeto(resultado) -> dict:
@@ -30,7 +36,7 @@ def _como_lista(resultado) -> list:
 
 
 async def main() -> dict:
-    params = StdioServerParameters(command="python", args=["servidor_mcp.py"])
+    params = StdioServerParameters(command=sys.executable, args=[SERVIDOR])
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
