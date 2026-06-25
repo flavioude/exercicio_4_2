@@ -50,5 +50,6 @@ autograde validar 4.2
 
 ## Reflexão — o que o MCP abstraiu
 
-_Em uma frase: qual detalhe da API REST o MCP tornou irrelevante para quem chama
-a tool?_
+O MCP escondeu o **HTTP**: quem chama a tool `criar_tarefa(titulo)` não precisa
+saber a URL, o método (`POST`), a porta ou o formato JSON da API — basta chamar a
+função pelo nome, e o servidor MCP cuida de toda a conversa com a API REST.
