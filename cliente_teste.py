@@ -37,7 +37,10 @@ def _como_lista(resultado) -> list:
 
 async def main() -> dict:
     params = StdioServerParameters(command=sys.executable, args=[SERVIDOR])
-    async with stdio_client(params) as (read, write):
+    # Joga o stderr do servidor MCP no devnull: o autograder mescla stderr no
+    # stdout, e os logs do servidor poluiriam o envelope JSON.
+    devnull = open(os.devnull, "w")
+    async with stdio_client(params, errlog=devnull) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
 

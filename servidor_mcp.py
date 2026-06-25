@@ -1,6 +1,12 @@
 # servidor_mcp.py
+import logging
+
 import httpx
 from mcp.server.fastmcp import FastMCP
+
+# Silencia logs do servidor: o cliente captura o stderro e ele nao pode
+# poluir o envelope JSON que o autograder le.
+logging.disable(logging.CRITICAL)
 
 API = "http://localhost:8000"
 mcp = FastMCP("tarefas-mcp")
